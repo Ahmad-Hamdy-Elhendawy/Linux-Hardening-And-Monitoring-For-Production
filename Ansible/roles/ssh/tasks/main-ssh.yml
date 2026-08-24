@@ -1,0 +1,50 @@
+---
+- name: SSH Configuration
+  become: true
+
+  block:
+    - name: Ensure ssh is installed
+      package:
+        name: openssh-server
+        state: present
+
+    - name: Ensure ssh is enabled and running
+      ansible.builtin.systemd_service:
+        name: sshd
+        enabled: true
+        state: started
+      when: ansible_os_family == "RedHat"
+
+    - name: Ensure ssh is enabled and running
+      ansible.builtin.systemd_service:
+        name: ssh
+        enabled: true
+        state: started
+      when: ansible_os_family == "Debian"
+
+    - name: Configure SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        backup: true
+        state: present
+        regexp: "{{ item.0 }}"
+        line: "{{ item.1 }}"
+        loop: "{{ regexps | zip(lines) | list }}"
+        validate: "sshd -t -f %s"
+      notify:
+        - Reload SSH (RedHat)
+        - Reload SSH (Debian)
+
+
+
+
+          
+
+
+
+
+
+        
+
+
+    

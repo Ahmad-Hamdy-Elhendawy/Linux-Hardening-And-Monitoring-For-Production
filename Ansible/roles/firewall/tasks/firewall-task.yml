@@ -1,0 +1,105 @@
+---
+- name: Firewall Configuration
+  become: true
+
+  vars:
+    firewall_names:
+      - firewalld
+      - ufw
+
+    os_families:
+      - RedHat
+      - Debian
+
+    allowed_redhat_services:
+      - ssh
+      - http
+      - https
+
+    enabled_ports:
+      - 22/tcp
+      - 80/tcp
+      - 443/tcp
+      
+  block:
+    - name: Install Firewall
+      ansible.builtin.package:
+        name: "{{ item.0 }}"
+        state: present
+      loop: "{{ firewall_names | zip(os_families) | list }}"
+      when: ansible_os_family == item.1
+
+    - name: Enable Firewall
+      ansible.builtin.systemd_service:
+        name: "{{ item.0 }}"
+        enabled: true
+        state: started
+      loop: "{{ firewall_names | zip(os_families) | list }}"
+      when: ansible_os_family == item.1
+
+
+    # RedHat / firewalld
+
+    - name: Get firewalld services
+      ansible.builtin.command:
+        cmd: firewall-cmd --list-services
+      register: firewalld_services
+      changed_when: false
+      when: ansible_os_family == "RedHat"
+
+    - name: Remove unnecessary firewalld services
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        state: disabled
+        permanent: true
+        immediate: true
+      loop: "{{ firewalld_services.stdout.split() }}"
+      when:
+        - ansible_os_family == "RedHat"
+        - item not in allowed_redhat_services
+
+    - name: Get firewalld ports
+      ansible.builtin.command:
+        cmd: firewall-cmd --list-ports
+      register: firewalld_ports
+      changed_when: false
+      when: ansible_os_family == "RedHat"
+
+    - name: Remove unnecessary firewalld ports
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        state: disabled
+        permanent: true
+        immediate: true
+      loop: "{{ firewalld_ports.stdout.split() }}"
+      when:
+        - ansible_os_family == "RedHat"
+        - item not in enabled_ports
+
+
+    # Debian / UFW
+
+    - name: Allow required ports through UFW
+      community.general.ufw:
+        rule: allow
+        port: "{{ item.split('/')[0] }}"
+        proto: "{{ item.split('/')[1] }}"
+      loop: "{{ enabled_ports }}"
+      when: ansible_os_family == "Debian"
+
+    - name: Set UFW default incoming policy
+      community.general.ufw:
+        default: deny
+        direction: incoming
+      when: ansible_os_family == "Debian"
+
+    - name: Set UFW default outgoing policy
+      community.general.ufw:
+        default: allow
+        direction: outgoing
+      when: ansible_os_family == "Debian"
+
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled
+      when: ansible_os_family == "Debian"

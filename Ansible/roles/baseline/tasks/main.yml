@@ -1,0 +1,13 @@
+- name: Collect Server's Baseline Information
+  debug:
+    msg:
+      - "Hostname: {{ ansible_hostname }}"
+      - "OS: {{ ansible_os_family }}"
+      - "Version: {{ ansible_distribution_version }}"
+      - "Arch: {{ ansible_architecture }}"
+      - "CPUs: {{ ansible_processor }}"
+      - "Cores Count: {{ ansible_processor_count }}"
+      - "Memory: {{ ansible_memtotal_mb }}"
+      - "IP : {{ ansible_default_ipv4 }}"
+      - "DNS: {{ ansible_dns }}"
+          

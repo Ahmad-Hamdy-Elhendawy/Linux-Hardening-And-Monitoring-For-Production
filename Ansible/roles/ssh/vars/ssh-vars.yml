@@ -1,0 +1,9 @@
+    regexps:
+      - "^#?PermitRootLogin[[:space:]]*"
+      - "^#?PasswordAuthentication[[:space:]]*"
+      - "^#?PermitEmptyPasswords[[:space:]]*"
+    
+    lines:
+      - PermitRootLogin no
+      - PasswordAuthentication no
+      - PermitEmptyPasswords no

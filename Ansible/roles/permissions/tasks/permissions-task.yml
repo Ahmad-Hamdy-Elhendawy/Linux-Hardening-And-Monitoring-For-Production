@@ -1,0 +1,62 @@
+---
+- name: Configure Permissions
+  become: true
+
+  vars:
+    readable_files:
+      - /etc/passwd
+      - /etc/group
+
+    shadow_files:
+      - /etc/shadow
+      - /etc/gshadow
+
+    private_files:
+      - /etc/ssh/sshd_config
+
+    sudoers_files:
+      - /etc/sudoers
+
+    sudoers_directory:
+      - /etc/sudoers.d/
+
+  block:
+
+    - name: Set permissions on readable files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: root
+        group: root
+        mode: "0644"
+      loop: "{{ readable_files }}"
+
+    - name: Set permissions on shadow files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: root
+        mode: "0640"
+      loop: "{{ shadow_files }}"
+
+    - name: Set permissions on private files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: root
+        group: root
+        mode: "0600"
+      loop: "{{ private_files }}"
+
+    - name: Set permissions on sudoers
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: root
+        group: root
+        mode: "0440"
+      loop: "{{ sudoers_files }}"
+
+    - name: Set permissions on sudoers directory
+      ansible.builtin.file:
+        path: "{{ item }}"
+        owner: root
+        group: root
+        mode: "0750"
+      loop: "{{ sudoers_directory }}"

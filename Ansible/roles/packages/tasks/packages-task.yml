@@ -1,0 +1,37 @@
+---
+- name: Install Packages
+  become: true
+  vars:
+    rhel_packages:
+      - firewalld
+      - httpd
+
+    debian_packages:
+      - ufw
+      - apache2
+
+    universal_packages:
+      - auditd
+      - nginx
+      - openssh-server
+      - mariadb-server
+
+  block:
+    - name: Install RedHat packages
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ rhel_packages + universal_packages }}"
+      when: ansible_os_family == "RedHat"
+
+    - name: Install Debian packages
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ debian_packages + universal_packages }}"
+      when: ansible_os_family == "Debian"
+
+    - name: Update Packages
+      ansible.builtin.package:
+        name: "*"
+        state: latest
