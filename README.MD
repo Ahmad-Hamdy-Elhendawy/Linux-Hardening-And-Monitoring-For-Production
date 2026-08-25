@@ -56,7 +56,8 @@ The Linux Admin instance acts as the **Ansible control node** and management hos
 │       └── motd/
 │
 ├── Bash/
-│   ├── harden.sh
+│   ├── run_modules.sh
+│   ├── collect_system_info.sh
 │   └── modules/
 │       ├── baseline.sh
 │       ├── packages.sh
