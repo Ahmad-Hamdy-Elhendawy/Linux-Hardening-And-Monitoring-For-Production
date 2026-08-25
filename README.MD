@@ -6,7 +6,7 @@ The project uses **Ansible and Bash as two different implementations of the same
 
 ---
 
-## Architecture
+## Architecture (TESTING AREA)
 
 ![AWS Architecture](docs/architecture.png)
 
