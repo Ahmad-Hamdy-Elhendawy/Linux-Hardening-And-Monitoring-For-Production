@@ -1,0 +1,47 @@
+- name: Run services
+  become: true
+
+  vars:
+    rhel_services:
+      - firewalld
+      - auditd
+      - nginx
+      - sshd
+      - mariadb
+
+    debian_services:
+      - ufw
+      - auditd
+      - nginx
+      - ssh
+      - mariadb
+
+  block:
+
+    - name: Remove Apache on RedHat
+      ansible.builtin.package:
+        name: httpd
+        state: absent
+      when: ansible_os_family == "RedHat"
+
+    - name: Remove Apache on Debian
+      ansible.builtin.package:
+        name: apache2
+        state: absent
+      when: ansible_os_family == "Debian"
+
+    - name: Start and enable RedHat services
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      loop: "{{ rhel_services }}"
+      when: ansible_os_family == "RedHat"
+
+    - name: Start and enable Debian services
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      loop: "{{ debian_services }}"
+      when: ansible_os_family == "Debian"

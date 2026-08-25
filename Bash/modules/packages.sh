@@ -4,12 +4,10 @@
 run_packages() {
     log_info "=== System Updates ==="
 
-    local status=0
-    if dnf check-update &>/dev/null; then
-        status=$?  # 100 means updates available
-    else
-        status=$?
-    fi
+    # IMPORTANT: capture the exit code from the command itself, not from
+    # the `if` test (which always reports 0/success for the taken branch).
+    dnf check-update &>/dev/null
+    local status=$?  # 0 = no updates, 100 = updates available, other = error
 
     if [[ $status -eq 100 ]]; then
         log_info "Updates are available."

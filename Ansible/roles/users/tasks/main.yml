@@ -15,7 +15,6 @@
         groups: "{{ 'wheel' if ansible_os_family == 'RedHat' else 'sudo' }}"
         password_expire_min: 1
         password_expire_max: 90
-        password_expire_account_disable: 2
         password_expire_warn: 14
         home: /home/admin
         shell: /bin/bash

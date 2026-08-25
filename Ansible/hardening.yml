@@ -1,0 +1,14 @@
+---
+- name: Linux Hardening
+  hosts: all
+  become: true
+
+  roles:
+    - baseline
+    - packages
+    - users
+    - ssh
+    - firewall
+    - services
+    - permissions
+    - motd

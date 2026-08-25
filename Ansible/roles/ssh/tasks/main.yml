@@ -28,9 +28,9 @@
         backup: true
         state: present
         regexp: "{{ item.0 }}"
-        line: "{{ item.1 }}"
-        loop: "{{ regexps | zip(lines) | list }}"
+        line: "{{ item.1 }}"    
         validate: "sshd -t -f %s"
+      loop: "{{ regexps | zip(lines) | list }}"
       notify:
         - Reload SSH (RedHat)
         - Reload SSH (Debian)
