@@ -1,4 +1,5 @@
 # Linux Infrastructure & Hardening Lab
+Video: https://lnkd.in/p/eQRAQxHU
 
 A practical Linux administration project combining **AWS, Terraform, Ansible, and Bash** to provision, configure, harden, and troubleshoot Linux systems.
 
