@@ -27,8 +27,12 @@ firewall() {
 }
 
 run() {
-    /opt/prometheus-3.10.0.linux-amd64/prometheus &
-    /opt/grafana-enterprise_13.2.0/bin/grafana &
+   run() {
+    /opt/prometheus-3.10.0.linux-amd64/prometheus \
+        --config.file=/opt/prometheus-3.10.0.linux-amd64/prometheus.yml &
+
+    /opt/bin/grafana server &
+}
 }
 
 download
