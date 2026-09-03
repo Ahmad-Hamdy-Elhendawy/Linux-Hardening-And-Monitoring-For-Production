@@ -28,9 +28,14 @@ run_firewall() {
         firewall-cmd --list-all || log_warn "firewall-cmd --list-all failed"
     fi
 
+    # Keep SSH reachable before removing other rules.
+    if [[ "$DRY_RUN" != true ]]; then
+        firewall-cmd --permanent --add-service=ssh
+    fi
+
     # Remove all services except SSH (permanent)
     log_info "Removing unnecessary services from firewall..."
-    local services=($(firewall-cmd --list-services))
+    local services=($(firewall-cmd --permanent --list-services))
     for service in "${services[@]}"; do
         if [[ "$service" != "ssh" ]]; then
             log_info "Removing service: $service"
@@ -42,7 +47,7 @@ run_firewall() {
 
     # Remove all ports except 22/tcp
     log_info "Removing unnecessary ports..."
-    local ports=($(firewall-cmd --list-ports))
+    local ports=($(firewall-cmd --permanent --list-ports))
     for port in "${ports[@]}"; do
         if [[ "$port" != "22/tcp" ]]; then
             log_info "Removing port: $port"

@@ -9,6 +9,11 @@ configure_sshd() {
     local option="$2"
     local line="$exp $option"
 
+    if [[ "$DRY_RUN" == true ]]; then
+        log_info "Dry-run: would set $line"
+        return 0
+    fi
+
     if grep -Ei "^[[:space:]]*#?${exp}[[:space:]]*${option}" "$SSHD_CONFIG" >/dev/null; then
         sed -i -E "s/^[[:space:]]*#?${exp}[[:space:]]*${option}/$line/" "$SSHD_CONFIG"
         log_debug "Updated $exp to '$option'"
@@ -45,20 +50,23 @@ run_ssh() {
     configure_sshd "PasswordAuthentication" "no"
     configure_sshd "PermitEmptyPasswords" "no"
 
+    if [[ "$DRY_RUN" == true ]]; then
+        log_info "Dry-run enabled. Skipping SSH validation and service changes."
+        return 0
+    fi
+
     # Validate configuration
     log_info "Validating SSH configuration..."
     if sshd -t; then
         log_info "SSH configuration is valid."
     else
         log_error "SSH configuration is invalid. Restoring backup..."
-        if [[ "$DRY_RUN" != true ]]; then
-            cp "$SSHD_BACKUP" "$SSHD_CONFIG"
-            if sshd -t; then
-                log_info "Backup restored successfully."
-            else
-                log_error "Backup is also invalid. Manual intervention required."
-                exit 1
-            fi
+        cp "$SSHD_BACKUP" "$SSHD_CONFIG"
+        if sshd -t; then
+            log_info "Backup restored successfully."
+        else
+            log_error "Backup is also invalid. Manual intervention required."
+            return 1
         fi
     fi
 

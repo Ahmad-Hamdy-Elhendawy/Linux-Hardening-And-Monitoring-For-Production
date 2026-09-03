@@ -34,9 +34,9 @@ check_file() {
 
 find_writable() {
     local file_type="$1"  # f or d
-    local find_cmd="find / -path /proc -prune -o -path /sys -prune -o -path /dev -prune -o -path /run -prune -o -type $file_type -perm -o+w -print 2>/dev/null"
+    local -a find_cmd=(find / -path /proc -prune -o -path /sys -prune -o -path /dev -prune -o -path /run -prune -o -type "$file_type" -perm -o+w -print)
     local files
-    files=$(eval "$find_cmd" || true)
+    files=$("${find_cmd[@]}" 2>/dev/null || true)
 
     if [[ -n "$files" ]]; then
         log_warn "World‑writable $file_type files found:"
@@ -59,9 +59,9 @@ find_writable() {
 
 find_special_permissions() {
     local file_type="$1"
-    local find_cmd="find / -path /proc -prune -o -path /sys -prune -o -path /dev -prune -o -path /run -prune -o -type $file_type \( -perm -4000 -o -perm -2000 \) -print 2>/dev/null"
+    local -a find_cmd=(find / -path /proc -prune -o -path /sys -prune -o -path /dev -prune -o -path /run -prune -o -type "$file_type" \( -perm -4000 -o -perm -2000 \) -print)
     local files
-    files=$(eval "$find_cmd" || true)
+    files=$("${find_cmd[@]}" 2>/dev/null || true)
 
     if [[ -n "$files" ]]; then
         log_info "Files with SUID/SGID found:"

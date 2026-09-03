@@ -11,8 +11,12 @@ run_packages() {
     # 100 = updates are available
     # other = actual error
 
-    dnf check-update &>/dev/null
-    local status=$?
+    local status
+    if dnf check-update &>/dev/null; then
+        status=0
+    else
+        status=$?
+    fi
 
     if [[ $status -eq 100 ]]; then
         log_info "Updates are available."

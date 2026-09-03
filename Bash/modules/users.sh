@@ -23,7 +23,8 @@ run_users() {
 
     # Check for non‑root accounts with UID 0
     log_info "Checking for extra UID 0 accounts..."
-    local extra_users=$(getent passwd | grep ':0:' | grep -v '^root:')
+    local extra_users
+    extra_users=$(getent passwd | grep ':0:' | grep -v '^root:' || true)
     if [[ -n "$extra_users" ]]; then
         log_warn "Found non‑root UID 0 accounts:"
         echo "$extra_users" | while IFS=: read user _; do

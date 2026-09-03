@@ -1,42 +1,52 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+PROMETHEUS_VERSION="3.10.0"
+GRAFANA_VERSION="13.2.0"
+PROMETHEUS_ARCHIVE="/tmp/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz"
+GRAFANA_ARCHIVE="/tmp/grafana-enterprise_${GRAFANA_VERSION}_linux_amd64.tar.gz"
 
 download() {
-    cd /tmp
-
-    wget https://github.com/prometheus/prometheus/releases/download/v3.10.0/prometheus-3.10.0.linux-amd64.tar.gz
-
-    wget https://dl.grafana.com/grafana-enterprise/release/13.2.0/grafana-enterprise_13.2.0_32077357341_linux_amd64.tar.gz
+    wget -O "$PROMETHEUS_ARCHIVE" "https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz" || return 1
+    wget -O "$GRAFANA_ARCHIVE" "https://dl.grafana.com/grafana-enterprise/release/${GRAFANA_VERSION}/grafana-enterprise_${GRAFANA_VERSION}_32077357341_linux_amd64.tar.gz" || return 1
 }
 
 extract() {
-    tar -xzf /tmp/prometheus*.tar.gz -C /opt
-    tar -xzf /tmp/grafana*.tar.gz -C /opt
+    mkdir -p /opt || return 1
+    tar -xzf "$PROMETHEUS_ARCHIVE" -C /opt || return 1
+    tar -xzf "$GRAFANA_ARCHIVE" -C /opt || return 1
 }
 
 clean() {
-    rm -f /tmp/prometheus*.tar.gz
-    rm -f /tmp/grafana*.tar.gz
+    rm -f "$PROMETHEUS_ARCHIVE" "$GRAFANA_ARCHIVE"
 }
 
-firewall() {
-    firewall-cmd --permanent --add-port=3000/tcp
-    firewall-cmd --permanent --add-port=9090/tcp
-    firewall-cmd --reload
-}
+run_prom_graf() {
+    log_info "=== Prometheus and Grafana ==="
 
-run() {
-   run() {
-    /opt/prometheus-3.10.0.linux-amd64/prometheus \
-        --config.file=/opt/prometheus-3.10.0.linux-amd64/prometheus.yml &
+    if [[ "$DRY_RUN" == true ]]; then
+        log_info "Dry-run enabled. Skipping monitoring downloads and startup."
+        return 0
+    fi
 
-    /opt/bin/grafana server &
-}
-}
+    download || { log_error "Monitoring download failed."; return 1; }
+    extract || { log_error "Monitoring extraction failed."; return 1; }
+    clean
 
-download
-extract
-clean
-firewall
-run
+    local prometheus_dir="/opt/prometheus-${PROMETHEUS_VERSION}.linux-amd64"
+    local prometheus_bin="$prometheus_dir/prometheus"
+    local grafana_bin
+    grafana_bin=$(find /opt -maxdepth 4 -type f -name grafana -print -quit)
+
+    if [[ ! -x "$prometheus_bin" ]]; then
+        log_error "Prometheus binary not found: $prometheus_bin"
+        return 1
+    fi
+    if [[ -z "$grafana_bin" || ! -x "$grafana_bin" ]]; then
+        log_error "Grafana binary was not found under /opt."
+        return 1
+    fi
+
+    log_info "Starting Prometheus and Grafana..."
+    nohup "$prometheus_bin" --config.file="$prometheus_dir/prometheus.yml" >/var/log/prometheus.log 2>&1 &
+    nohup "$grafana_bin" server >/var/log/grafana.log 2>&1 &
+}
