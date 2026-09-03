@@ -17,6 +17,7 @@
       - nginx
       - openssh-server
       - mariadb-server
+      - wget
 
   block:
 
