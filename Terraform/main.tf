@@ -225,6 +225,14 @@ resource "aws_security_group" "targets" {
     protocol        = "tcp"
     security_groups = [aws_security_group.admin.id]
   }
+  
+    ingress {
+    description     = "Node from prom Admin"
+    from_port       = 9100
+    to_port         = 9100
+    protocol        = "tcp"
+    security_groups = [aws_security_group.admin.id]
+  }
 
   egress {
     from_port   = 0
