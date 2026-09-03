@@ -54,6 +54,9 @@ run_firewall() {
 
     # Reload firewalld to apply changes
     if [[ "$DRY_RUN" != true ]]; then
+        firewall-cmd --add-port=9100/tcp --permanent
+        firewall-cmd --add-port=9090/tcp --permanent
+        firewall-cmd --add-port=3000/tcp --permanent
         log_info "Reloading firewall..."
         systemctl reload firewalld
     fi
