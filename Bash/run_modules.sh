@@ -17,7 +17,7 @@ for m in "$SCRIPT_DIR"/modules/*.sh; do
     source "$m"
 done
 
-for name in packages users ssh firewall permissions storage services logging; do
+for name in packages users ssh firewall permissions storage services logging prom_graf; do
     fn="run_${name}"
     if declare -f "$fn" > /dev/null; then
         echo ""
