@@ -187,6 +187,22 @@ resource "aws_security_group" "admin" {
     cidr_blocks = ["${var.my_ip}/32"]
   }
 
+   ingress {
+    description = "prom from my PC"
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["${var.my_ip}/32"]
+  }
+
+   ingress {
+    description = "graf from my PC"
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["${var.my_ip}/32"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
