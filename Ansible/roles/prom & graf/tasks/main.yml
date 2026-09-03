@@ -1,0 +1,43 @@
+---
+- name: Install prom & graf
+  become: true
+
+  vars:
+    packages:
+      - name: prom
+        url: https://github.com/prometheus/prometheus/releases/download/v3.10.0/prometheus-3.10.0.linux-amd64.tar.gz
+        archive: /tmp/prometheus
+        extract: /opt
+
+      - name: graf
+        url: https://dl.grafana.com/grafana-enterprise/release/13.2.0/grafana-enterprise_13.2.0_32077357341_linux_amd64.tar.gz
+        archive: /tmp/grafana
+        extract: /opt
+
+      - name: node
+        url: https://github.com/prometheus/node_exporter/releases/download/v1.11.1/node_exporter-1.11.1.linux-amd64.tar.gz
+        archive: /tmp/node
+        extract: /opt
+
+  block:
+
+    - name: Download gz
+      ansible.builtin.get_url:
+        url: "{{ item.url }}"
+        dest: "{{ item.archive }}"
+        mode: "0644"
+      loop: "{{ packages }}"
+     
+    - name: Extract 
+      ansible.builtin.unarchive:
+        src: "{{ item.archive }}"
+        remote_src: yes
+        dest: "{{ item.extract }}"
+      loop: "{{ packages }}"
+
+    - name: delete gz
+      ansible.builtin.file:
+        path: "{{ item.archive }}"
+        state: absent
+      loop: "{{ packages }}"
+        
