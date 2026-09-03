@@ -2,10 +2,7 @@
 
 set -euo pipefail
 
-# Prometheus and Grafana on admin
-
 download() {
-
     cd /tmp
 
     wget https://github.com/prometheus/prometheus/releases/download/v3.10.0/prometheus-3.10.0.linux-amd64.tar.gz
@@ -14,26 +11,28 @@ download() {
 }
 
 extract() {
-
     tar -xzf /tmp/prometheus*.tar.gz -C /opt
     tar -xzf /tmp/grafana*.tar.gz -C /opt
 }
 
 clean() {
-
     rm -f /tmp/prometheus*.tar.gz
     rm -f /tmp/grafana*.tar.gz
 }
 
 firewall() {
-
     firewall-cmd --permanent --add-port=3000/tcp
     firewall-cmd --permanent --add-port=9090/tcp
     firewall-cmd --reload
 }
 
-run
+run() {
+    /opt/prometheus-3.10.0.linux-amd64/prometheus &
+    /opt/grafana-enterprise_13.2.0/bin/grafana server &
+}
+
 download
 extract
 clean
 firewall
+run
