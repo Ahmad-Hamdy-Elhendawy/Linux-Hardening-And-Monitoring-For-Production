@@ -33,6 +33,10 @@ The Linux Admin instance acts as the **Ansible control node** and management hos
 
 ---
 
+## Monitoring (Prometheus & Grafana)
+
+![Monitoring](docs/prom.png)
+
 ## Project Structure
 
 ```text
