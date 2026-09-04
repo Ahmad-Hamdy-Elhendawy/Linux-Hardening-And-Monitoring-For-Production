@@ -35,9 +35,54 @@ The Linux Admin instance acts as the **Ansible control node** and management hos
 
 ## Monitoring (Prometheus & Grafana)
 
-![Monitoring](docs/prom.png)
+Monitoring is implemented as an additional hardening module (`prom_graf`), following the same Bash/Ansible dual-implementation pattern as the rest of the project.
 
-![Monitoring](docs/graf.png)
+**Stack:**
+
+| Component | Version | Role |
+|---|---|---|
+| Prometheus | 3.10.0 | Metrics collection and storage |
+| Grafana | 13.2.0 (Enterprise build) | Dashboards and visualization |
+| Node Exporter | 1.11.1 | Exposes host-level metrics (CPU, memory, disk, network) |
+
+**Ports:**
+
+| Port | Service |
+|---|---|
+| `9100` | Node Exporter |
+| `9090` | Prometheus |
+| `3000` | Grafana |
+
+### How it's deployed
+
+- **Bash:** `modules/prom_graf.sh` downloads, extracts, and starts Prometheus and Grafana as background processes (`nohup`), logging to `/var/log/prometheus.log` and `/var/log/grafana.log`. It's wired into `run_modules.sh` and runs automatically as part of `./harden.sh`.
+- **Ansible:** a `prom & graf` role downloads and extracts Prometheus, Grafana, and Node Exporter to `/opt` on the target host. A separate `node` role installs and runs just Node Exporter, and **is** included in `hardening.yml` — so every target gets metrics exposed on `:9100` by default. The `prom & graf` role exists under `roles/` but isn't currently added to `hardening.yml`'s role list, so it needs to be included manually (or run standalone) if you want Prometheus/Grafana themselves provisioned via Ansible rather than Bash.
+- **Firewall:** the Bash `firewall` module opens `9100`, `9090`, and `3000`. The Ansible `firewall` role currently opens `9090` and `9100`.
+
+### Dashboard
+
+Grafana ships with a **System Usage** dashboard (`node` job, host `localhost:9100`) covering:
+
+- CPU Busy %, System Load (5m/15m avg), SWAP used, CPU core count, total RAM
+- CPU breakdown (system / user / iowait / IRQs / idle)
+- Memory (total / used / cache+buffer / free / swap)
+- Network traffic per interface (recv/trans)
+- Disk space used per mount point
+
+![Prometheus](docs/prom.png)
+
+![Grafana](docs/graf.png)
+
+### Access
+
+```bash
+# Prometheus
+http://<host>:9090
+
+# Grafana
+http://<host>:3000
+```
+
 ## Project Structure
 
 ```text
@@ -49,8 +94,10 @@ The Linux Admin instance acts as the **Ansible control node** and management hos
 │   └── terraform.tfvars
 │
 ├── Ansible/
+│   ├── ansible.cfg
 │   ├── hardening.yml
 │   ├── inventory.ini
+│   ├── requirements.yml
 │   └── roles/
 │       ├── baseline/
 │       ├── packages/
@@ -59,9 +106,12 @@ The Linux Admin instance acts as the **Ansible control node** and management hos
 │       ├── firewall/
 │       ├── services/
 │       ├── permissions/
-│       └── motd/
+│       ├── motd/
+│       ├── node/          # Node Exporter (run on all targets)
+│       └── prom & graf/   # Prometheus + Grafana (not yet in hardening.yml)
 │
 ├── Bash/
+│   ├── RUN_THIS_FIRST_PERMISSIONS.sh
 │   ├── run_modules.sh
 │   ├── collect_system_info.sh
 │   └── modules/
@@ -72,10 +122,19 @@ The Linux Admin instance acts as the **Ansible control node** and management hos
 │       ├── firewall.sh
 │       ├── services.sh
 │       ├── permissions.sh
-│       └── motd.sh
+│       ├── motd.sh
+│       └── prom_graf.sh   # Prometheus, Grafana, Node Exporter
+│
+├── Terraform/
+│   ├── main.tf
+│   ├── output.tf
+│   ├── variable.tf
+│   └── EC2s_public_keys/
 │
 └── docs/
-    └── architecture.png
+    ├── architecture.png
+    ├── prom.png
+    └── graf.png
 ```
 
 ---
