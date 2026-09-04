@@ -8,7 +8,6 @@
       - nginx
       - sshd
       - mariadb
-      - wget
 
     debian_services:
       - ufw
@@ -16,7 +15,6 @@
       - nginx
       - ssh
       - mariadb
-      - wget
 
   block:
 

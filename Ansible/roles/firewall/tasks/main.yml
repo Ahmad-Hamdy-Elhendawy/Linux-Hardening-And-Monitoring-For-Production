@@ -13,7 +13,7 @@
       - 80/tcp
       - 443/tcp
       - 9090/tcp
-
+      - 9100/tcp
   block:
 
     # RedHat / firewalld
@@ -60,6 +60,18 @@
       when:
         - ansible_os_family == "RedHat"
         - item not in enabled_ports
+
+
+
+    - name: Add ports
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        state: enabled
+        permanent: true
+        immediate: true
+      loop: "{{ enabled_ports }}"
+      when:
+        - ansible_os_family == "RedHat"
 
     # Debian / UFW
 
