@@ -37,6 +37,7 @@ The Linux Admin instance acts as the **Ansible control node** and management hos
 
 ![Monitoring](docs/prom.png)
 
+![Monitoring](docs/graf.png)
 ## Project Structure
 
 ```text
